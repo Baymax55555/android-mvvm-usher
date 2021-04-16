@@ -2,8 +2,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="item" type="net.flow9.androidmvvm.repository.model.response.School"/>
-        <variable name="vm" type="net.flow9.androidmvvm.viewmodel.FindSchoolViewModel"/>
+        <variable name="item" type="net.flow9.androidmvvm.repository.model.response.GithubUser"/>
+        <variable name="vm" type="net.flow9.androidmvvm.viewmodel.GithubUserViewModel"/>
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -14,32 +14,32 @@
         android:onClick="@{()->vm.onItemClick(item)}">
 
         <TextView
-            android:id="@+id/schoolName"
+            android:id="@+id/name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:ellipsize="end"
-            android:text="@{item.name}"
+            android:text="@{item.login}"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/address"
+            android:id="@+id/avatar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="8dp"
             android:maxLines="2"
-            android:text="@{item.address}"
+            android:text="@{item.avatar_url}"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/schoolName"
-            app:layout_constraintStart_toStartOf="@+id/schoolName"
-            app:layout_constraintTop_toBottomOf="@+id/schoolName" />
+            app:layout_constraintEnd_toEndOf="@+id/name"
+            app:layout_constraintStart_toStartOf="@+id/name"
+            app:layout_constraintTop_toBottomOf="@+id/name" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
