@@ -7,8 +7,12 @@ import android.view.ViewGroup
 import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.scopes.ActivityScoped
 
 import net.flow9.androidmvvm.R
 import net.flow9.androidmvvm.activity.base.DiffCallback
@@ -18,9 +22,10 @@ import net.flow9.androidmvvm.repository.model.response.GithubUser
 import net.flow9.androidmvvm.viewmodel.GithubUserViewModel
 import javax.inject.Inject
 
+
 class UserDialog @Inject constructor(
-    private val viewModel:GithubUserViewModel
-): DialogFragment() {
+    var viewModel:GithubUserViewModel
+) : DialogFragment() {
 
     private val binding: DialogUserBinding by lazy {
         DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_user, null, false)

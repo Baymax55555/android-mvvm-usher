@@ -11,7 +11,7 @@ import net.flow9.androidmvvm.repository.model.response.GithubUser
 import javax.inject.Inject
 
 class GithubUserViewModel @Inject constructor(
-    private val githubUserRepository: GithubUserRepository
+    private val githubUserRepository: GithubUserRepository,
 ) : ViewModel(), LifecycleObserver {
 
     val userList by lazy { MutableLiveData<List<GithubUser>>() }
