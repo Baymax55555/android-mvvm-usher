@@ -1,6 +1,7 @@
 package net.flow9.androidmvvm.repository.remote
 
 import android.util.Log
+import dagger.Provides
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,17 +9,23 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
+
 
 object ApiService {
 
-    const val BASE_URL = ""
+    const val BASE_URL = "https://api.github.com/"
 
     var token = ""
+
+    @Singleton
+    @Provides
+    fun githubUserService(): GithubUserService = retrofit(BASE_URL).create(GithubUserService::class.java)
 
     fun schoolService(): SchoolService = retrofit(BASE_URL).create(SchoolService::class.java)
     fun cityService(): CityService = retrofit(BASE_URL).create(CityService::class.java)
 
-    fun retrofit(baseUrl: String): Retrofit {
+    private fun retrofit(baseUrl: String): Retrofit {
         return Retrofit.Builder().baseUrl(baseUrl).apply {
 
             val client = OkHttpClient.Builder().apply {
