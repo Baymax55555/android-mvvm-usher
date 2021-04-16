@@ -2,10 +2,6 @@ package net.flow9.androidmvvm.repository.model.response
 
 import net.flow9.androidmvvm.activity.base.BaseDiffItem
 
-data class GithubUserResponse(
-    val users : List<GithubUser>
-)
-
 data class GithubUser(
     val avatar_url: String,
     val events_url: String,
@@ -25,6 +21,7 @@ data class GithubUser(
     val subscriptions_url: String,
     val type: String,
     val url: String
+
 ) : BaseDiffItem {
     override fun getId(): String {
         return "$id"

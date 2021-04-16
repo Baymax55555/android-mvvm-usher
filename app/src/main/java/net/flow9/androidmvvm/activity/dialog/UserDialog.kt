@@ -9,18 +9,15 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import dagger.hilt.android.AndroidEntryPoint
 
 import net.flow9.androidmvvm.R
 import net.flow9.androidmvvm.activity.base.DiffCallback
 import net.flow9.androidmvvm.databinding.DialogUserBinding
 import net.flow9.androidmvvm.databinding.ItemUserBinding
 import net.flow9.androidmvvm.repository.model.response.GithubUser
-import net.flow9.androidmvvm.repository.model.response.GithubUserResponse
 import net.flow9.androidmvvm.viewmodel.GithubUserViewModel
 import javax.inject.Inject
 
-@AndroidEntryPoint
 class UserDialog @Inject constructor(
     private val viewModel:GithubUserViewModel
 ): DialogFragment() {
@@ -67,10 +64,10 @@ class UserAdapter(private val viewModel: GithubUserViewModel): ListAdapter<Githu
 }
 
 @BindingAdapter("bind_user_response")
-fun bindRecyclerView(recyclerView: RecyclerView, item: GithubUserResponse?){
-    item?.let { response ->
+fun bindRecyclerView(recyclerView: RecyclerView, item: List<GithubUser>?){
+    item?.let { users ->
         val adapter = recyclerView.adapter as UserAdapter
-        adapter.submitList(response.users)
+        adapter.submitList(users)
     }
 }
 

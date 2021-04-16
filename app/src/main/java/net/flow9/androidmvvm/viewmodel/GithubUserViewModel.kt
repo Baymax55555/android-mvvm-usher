@@ -8,16 +8,16 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import net.flow9.androidmvvm.repository.GithubUserRepository
 import net.flow9.androidmvvm.repository.model.response.GithubUser
-import net.flow9.androidmvvm.repository.model.response.GithubUserResponse
 import javax.inject.Inject
 
 class GithubUserViewModel @Inject constructor(
     private val githubUserRepository: GithubUserRepository
 ) : ViewModel(), LifecycleObserver {
 
-    val userList by lazy { MutableLiveData<GithubUserResponse>() }
+    val userList by lazy { MutableLiveData<List<GithubUser>>() }
 
     init {
+        Log.d("초기화", "called init")
         getUser()
     }
 
@@ -26,7 +26,9 @@ class GithubUserViewModel @Inject constructor(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ response ->
+
                 userList.postValue(response)
+
             },{
                 Log.e("학교검색", "error=${it.localizedMessage}")
             })

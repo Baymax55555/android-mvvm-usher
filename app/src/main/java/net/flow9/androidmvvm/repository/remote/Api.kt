@@ -1,7 +1,10 @@
 package net.flow9.androidmvvm.repository.remote
 
 import android.util.Log
+import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,14 +14,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-
-object ApiService {
+@Module
+@InstallIn(ActivityComponent::class)
+object Api {
 
     const val BASE_URL = "https://api.github.com/"
 
     var token = ""
 
-    @Singleton
     @Provides
     fun githubUserService(): GithubUserService = retrofit(BASE_URL).create(GithubUserService::class.java)
 
@@ -32,15 +35,14 @@ object ApiService {
 
                 val interceptor = HttpLoggingInterceptor()
                 interceptor.level = HttpLoggingInterceptor.Level.BODY
-//            val interceptor = LoggingInterceptor()
                 addInterceptor(interceptor)
 
                 addInterceptor(
                     Interceptor { chain ->
                         Log.d("인증", "intercepter ==================> ${token}")
                         val builder = chain.request().newBuilder()
-                            .header("Authorization", "Bearer ${token}")
-                            .header("Platform", "ANDROID")
+//                            .header("Authorization", "Bearer ${token}")
+//                            .header("Platform", "ANDROID")
                         val response = chain.proceed(builder.build())
 
                         val authorization = response.header("Authorization")
