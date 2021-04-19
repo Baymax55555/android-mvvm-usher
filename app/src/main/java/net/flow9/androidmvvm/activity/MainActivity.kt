@@ -1,4 +1,4 @@
-package net.flow9.androidmvvm
+package net.flow9.androidmvvm.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
