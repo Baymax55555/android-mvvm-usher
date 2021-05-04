@@ -73,8 +73,14 @@ dependencies {
 
     def hilt_version = "1.0.0-alpha01"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hilt_version"
-    // When using Kotlin.
     kapt "androidx.hilt:hilt-compiler:$hilt_version"
+
+    //room
+    def room_version = "2.3.0"
+
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
 
     // multidex
     implementation 'androidx.multidex:multidex:2.0.1'

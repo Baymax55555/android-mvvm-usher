@@ -7,10 +7,13 @@ import io.reactivex.schedulers.Schedulers
 import net.flow9.androidmvvm.repository.FindSchoolRepository
 import net.flow9.androidmvvm.repository.model.response.School
 import net.flow9.androidmvvm.repository.model.response.SchoolResponse
+import javax.inject.Inject
 
-class FindSchoolViewModel : ViewModel(), LifecycleObserver {
+class FindSchoolViewModel @Inject constructor(
+        private val repository:FindSchoolRepository
+) : ViewModel(), LifecycleObserver {
 
-    private val repository by lazy { FindSchoolRepository() }
+//    val repository by lazy { FindSchoolRepository() }
 
     val currentPage = MutableLiveData<String>("0")
     val totalPage = MutableLiveData<String>("0")

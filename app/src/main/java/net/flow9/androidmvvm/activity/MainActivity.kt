@@ -2,9 +2,8 @@ package net.flow9.androidmvvm.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.scopes.ActivityScoped
+
 import net.flow9.androidmvvm.activity.dialog.UserDialog
 import net.flow9.androidmvvm.databinding.ActivityMainBinding
 import javax.inject.Inject

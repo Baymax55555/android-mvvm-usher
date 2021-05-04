@@ -1,10 +1,10 @@
 # Android MVVM - Clean Architecture with DI 
-MVVM with AAC LiveData, Hilt, RX, Retrofit
+MVVM with AAC ViewModel, StateHandler, LiveData, RX, Retrofit, Hilt, DiffUtil
 
 ## Implementation
 ### build.gradle (project)
 ```
-// for hilt
+// for hilt. do not use this!!!
 dependencies {
   classpath 'com.google.dagger:hilt-android-gradle-plugin:2.28-alpha'
 }
@@ -28,7 +28,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
 
-    //hilt
+    // hilt
     def dagger_version = "2.28-alpha"
     implementation "com.google.dagger:hilt-android:$dagger_version"
     kapt "com.google.dagger:hilt-android-compiler:$dagger_version"
@@ -45,7 +45,6 @@ dependencies {
 
     def hilt_version = "1.0.0-alpha01"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hilt_version"
-    // When using Kotlin.
     kapt "androidx.hilt:hilt-compiler:$hilt_version"
 }
 ```
@@ -53,14 +52,20 @@ dependencies {
 ### Retrofit Api
 ```
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ApplicationComponent::class)
 object Api {
 
-    const val BASE_URL = "https://api.github.com/"
+
+    @Singleton
+    @Provides
+    @Named("base_url")
+    fun create_base_url() = "https://api.github.com/"
 
     var token = ""
 
-    private fun retrofit(baseUrl: String): Retrofit {
+    @Singleton
+    @Provides
+    fun retrofit(@Named("base_url") baseUrl: String): Retrofit {
         return Retrofit.Builder().baseUrl(baseUrl).apply {
 
             val client = OkHttpClient.Builder().apply {
@@ -71,13 +76,14 @@ object Api {
 
                 addInterceptor(
                     Interceptor { chain ->
-
+                        Log.d("Authorize", "intercepter ==================> ${token}")
                         val builder = chain.request().newBuilder()
-                            // .header("Authorization", "Bearer ${token}") // need authorization
                         val response = chain.proceed(builder.build())
-                        val authorization = response.header("Authorization")
 
-                        if(authorization?.isNotEmpty() == true) {
+                        val authorization = response.header("Authorization")
+                        Log.d("Authorize", "Authorization=$authorization")
+
+                        if (authorization?.isNotEmpty() == true) {
                             token = authorization
                         }
                         return@Interceptor response
@@ -96,14 +102,30 @@ object Api {
     }
 }
 ```
-### Service
+### Base Util (DiffUtil)
+```
+open class DiffCallback<T: BaseDiffItem> : DiffUtil.ItemCallback<T>() {
+    override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
+        return oldItem.getDiffId() == newItem.getDiffId()
+    }
+
+    override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
+        return oldItem.equals(newItem)
+    }
+}
+
+interface BaseDiffItem {
+    fun getDiffId(): String
+}
+```
+### Remote Data Source (Retrofit)
 ```
 @Module
 @InstallIn(ApplicationComponent::class)
 object GithubUserApi {
-    @Singleton
+
     @Provides
-    fun githubUserService(): GithubUserService = Api.retrofit(Api.BASE_URL).create(GithubUserService::class.java)
+    fun githubUserService(retrofit: Retrofit): GithubUserService = retrofit.create(GithubUserService::class.java)
 }
 
 interface GithubUserService {
@@ -111,40 +133,95 @@ interface GithubUserService {
     fun getUsers(): Observable<List<GithubUser>>
 }
 ```
+### Local DAO and Entity (Room)
+##### Dao
+```
+@Dao
+interface GithubUserDao {
+    @Query("SELECT * FROM github_user")
+    suspend fun getAllUsers() : List<GithubUser>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(characters: List<GithubUser>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(character: GithubUser)
+}
+```
+##### Entity
+```
+@Entity(tableName = "github_user")
+data class GithubUser (
+        @PrimaryKey
+        val id: Int,
+        val avatar_url: String,
+        val events_url: String,
+        val followers_url: String,
+        val following_url: String,
+        val gists_url: String,
+        val gravatar_id: String,
+        val html_url: String,
+        val login: String,
+        val node_id: String,
+        val organizations_url: String,
+        val received_events_url: String,
+        val repos_url: String,
+        val site_admin: Boolean,
+        val starred_url: String,
+        val subscriptions_url: String,
+        val type: String,
+        val url: String,
+) : BaseDiffItem {
+        override fun getDiffId() = "$id"
+}
+```
 ### Repository
 ```
+@Singleton
 class GithubUserRepository @Inject constructor(
-    private val githubUserService: GithubUserService
+    private val remoteSource: GithubUserService,
+    private val localDao: GithubUserDao
 ) {
-    fun getUsers() = githubUserService.getUsers()
+    suspend fun getUsers() : Observable<List<GithubUser>> {
+
+        return remoteSource.getUsers()
+                .subscribeOn(Schedulers.io())
+                .timeout(3, TimeUnit.SECONDS)
+                .doOnEach { Log.e(javaClass.simpleName, "${it.error?.localizedMessage}") }
+                .onErrorResumeNext (
+                    Observable.just(localDao.getAllUsers())
+                )
+    }
 }
 ```
 ## ViewModel
 ```
 class GithubUserViewModel @Inject constructor(
-    private val githubUserRepository: GithubUserRepository,
-) : ViewModel(), LifecycleObserver {
+    private val githubUserRepository : GithubUserRepository
+): ViewModel(), LifecycleObserver {
 
     val userList by lazy { MutableLiveData<List<GithubUser>>() }
 
     init {
-        Log.d("ViewModel", "called init")
         getUser()
     }
 
     fun getUser() {
-        githubUserRepository.getUsers()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ response ->
-                userList.postValue(response)
-            },{
-                Log.e("ViewModel", "error=${it.localizedMessage}")
-            })
+        viewModelScope.launch {
+            githubUserRepository.getUsers()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ response ->
+                        userList.postValue(response)
+                    },{ error ->
+                        Log.e("검색", "error=${error.localizedMessage}")
+                    })
+        }
+
     }
 
     fun onItemClick(user: GithubUser) {
-        Log.d("ViewModel", "item clicked = $user")
+        Log.d(javaClass.simpleName, "item clicked = $user")
     }
 }
 ```
@@ -152,14 +229,15 @@ class GithubUserViewModel @Inject constructor(
 ### Fragment (Dialog)
 ```
 class UserDialog @Inject constructor(
-    var viewModel:GithubUserViewModel
-) : DialogFragment() {
+        private val viewModel:GithubUserViewModel
+): DialogFragment() {
 
-    private val binding: DialogUserBinding by lazy {
-        DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_user, null, false)
+    lateinit var binding: DialogUserBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_user, container, false)
+        return binding.root
     }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -174,7 +252,9 @@ class UserDialog @Inject constructor(
         }
     }
 }
-
+```
+### Adapter
+```
 class UserAdapter(private val viewModel: GithubUserViewModel): ListAdapter<GithubUser, UserAdapter.Holder>(
     DiffCallback<GithubUser>()
 ) {
@@ -285,8 +365,7 @@ fun bindRecyclerView(recyclerView: RecyclerView, item: List<GithubUser>?){
     </LinearLayout>
 </layout>
 ```
-## As a DI entry point
-### Activity
+## Activity
 ```
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -309,8 +388,5 @@ class MainActivity : AppCompatActivity() {
 ## Application
 ```
 @HiltAndroidApp
-class App : Application() {
-
-}
+class App : MultiDexApplication()
 ```
-
