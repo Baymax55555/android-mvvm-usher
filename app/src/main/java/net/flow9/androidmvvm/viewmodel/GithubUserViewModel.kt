@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 class GithubUserViewModel @Inject constructor(
     private val githubUserRepository : GithubUserRepository
-): ViewModel(), LifecycleObserver {
+): BaseViewModel(), LifecycleObserver {
 
     val userList by lazy { MutableLiveData<List<GithubUser>>() }
 
@@ -21,16 +21,17 @@ class GithubUserViewModel @Inject constructor(
 
     fun getUser() {
         viewModelScope.launch {
-            githubUserRepository.getUsers()
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ response ->
-                        userList.postValue(response)
-                    },{ error ->
-                        Log.e("검색", "error=${error.localizedMessage}")
-                    })
+            compositeDisposable.add(
+                githubUserRepository.getUsers()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ response ->
+                            userList.postValue(response)
+                        },{ error ->
+                            Log.e("검색", "error=${error.localizedMessage}")
+                        })
+            )
         }
-
     }
 
     fun onItemClick(user: GithubUser) {

@@ -103,6 +103,7 @@ object Api {
 }
 ```
 ### Base Util (DiffUtil)
+do not define var id or fun getId() in BaseDiffItem. it will conflict with Room.
 ```
 open class DiffCallback<T: BaseDiffItem> : DiffUtil.ItemCallback<T>() {
     override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
@@ -195,6 +196,24 @@ class GithubUserRepository @Inject constructor(
 }
 ```
 ## ViewModel
+### BaseViewModel
+to manage memory leak
+```
+abstract class BaseViewModel : ViewModel() {
+    protected val compositeDisposable = CompositeDisposable()
+
+    fun clearCompositeDisposable() {
+        compositeDisposable.clear()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.dispose()
+    }
+}
+```
+### ViewModel
+implementation
 ```
 class GithubUserViewModel @Inject constructor(
     private val githubUserRepository : GithubUserRepository

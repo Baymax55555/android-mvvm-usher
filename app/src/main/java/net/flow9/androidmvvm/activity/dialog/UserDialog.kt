@@ -42,6 +42,14 @@ class UserDialog @Inject constructor(
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        viewModel.run {
+            clearCompositeDisposable()
+        }
+    }
 }
 
 class UserAdapter(private val viewModel: GithubUserViewModel): ListAdapter<GithubUser, UserAdapter.Holder>(

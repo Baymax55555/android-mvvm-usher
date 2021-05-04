@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 class FindSchoolViewModel @Inject constructor(
         private val repository:FindSchoolRepository
-) : ViewModel(), LifecycleObserver {
+) : BaseViewModel(), LifecycleObserver {
 
 //    val repository by lazy { FindSchoolRepository() }
 
