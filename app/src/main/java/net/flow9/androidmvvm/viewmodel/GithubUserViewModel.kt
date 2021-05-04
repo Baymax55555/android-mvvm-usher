@@ -16,17 +16,19 @@ class GithubUserViewModel @Inject constructor(
     val userList by lazy { MutableLiveData<List<GithubUser>>() }
 
     init {
-        getUser()
+        setList()
     }
 
-    fun getUser() {
+    private fun setList() {
         viewModelScope.launch {
             compositeDisposable.add(
                 githubUserRepository.getUsers()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ response ->
+
                             userList.postValue(response)
+
                         },{ error ->
                             Log.e("검색", "error=${error.localizedMessage}")
                         })
