@@ -1,5 +1,5 @@
 # Android MVVM - Clean Architecture with DI 
-MVVM with AAC ViewModel, StateHandler, LiveData, RX, Retrofit, Hilt, DiffUtil
+MVVM with AAC ViewModel, LiveData, RX, Retrofit, Hilt, DiffUtil
 
 ## Implementation
 ### build.gradle (project)
