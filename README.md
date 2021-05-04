@@ -4,7 +4,7 @@ MVVM with AAC ViewModel, StateHandler, LiveData, RX, Retrofit, Hilt, DiffUtil
 ## Implementation
 ### build.gradle (project)
 ```
-// for hilt. do not use this!!!
+// for hilt.
 dependencies {
   classpath 'com.google.dagger:hilt-android-gradle-plugin:2.28-alpha'
 }
